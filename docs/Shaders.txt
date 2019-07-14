@@ -1,0 +1,20 @@
+Default Variables:
+	Matrix:
+		PROJECTION_MAT - Projection Matrix of the Camera
+		VIEW_MAT - View Matrix of the Camera
+		MODEL_MAT - Model Matrix of the Transform
+	Vector:
+		IN_POSITION    - Vec3 - Position of the vertex
+		IN_TEXCOORD    - Vec2 - Texcoord of the vertex
+		
+		SUB_SIZE       - Vec2 - Sub Size of the Texture in a TextureSheet
+		TEXTURE_SIZE   - Vec2 - Size of the main Texture of a TextureSheet
+		TEXTURE_OFFSET - Vec2 - Offset of the Sub Texture in a TextureSheet
+		TEXTURE_REPEAT - Vec2 - Repeat amount of the Texture in the `Renderable` class
+		
+		OPTIONAL:
+		OUT_TEXCOORD   - Vec2 - Default pass texcoord in the `default.vs` shader
+	Boolean:
+		SUB_TEXTURE - If the texture passed is a sub texture of a TextureSheet
+		FLIP_X      - If the texture coords should be flipped horizontally
+		FLIP_Y      - If the texture coords should be flipped vertically

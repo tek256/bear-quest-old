@@ -1,0 +1,175 @@
+public static void main(String[] args){
+		Scanner in = new Scanner(System.in);
+		
+		boolean running = true;
+
+		JsonObject focusedJson = null;
+		JsonArray focusedArray = null;
+		String focusedArrayStr=  "";
+		
+		String focusedFile = "";
+		boolean focusing = false;
+		
+		int focusedWidth = 0;
+		int focusedHeight = 0;
+		
+		System.out.println("ay");
+		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		
+		while(running){
+			String line;
+			
+			
+			while((line = in.nextLine()) != null){
+				String[] lineArgs = line.split(" ");
+				
+				//format the arguments to be readable
+				for(int i=0;i<lineArgs.length;i++){
+					lineArgs[i] = lineArgs[i].trim();
+					lineArgs[i] = lineArgs[i].replaceAll(" ", "");
+					System.out.println(lineArgs[i]);
+				}
+				
+				
+				if(!focusing){
+					switch(lineArgs[0].toLowerCase()){
+					case "focus":
+						if(new File(lineArgs[1]).exists()){
+							System.out.println("Exists");
+							//enable focusing
+							focusing = true;
+							//setup the name of the file
+							String name = new File(lineArgs[1]).getName().toLowerCase();
+							
+							//point to the focused file
+							focusedFile = lineArgs[1];
+							
+							if(name.endsWith("json")){
+								JsonParser parser = new JsonParser();
+								focusedJson = parser.parse(ResourceLoader.getString(focusedFile)).getAsJsonObject();
+							}else if(name.endsWith("png")){
+								//create a root for us to use
+								focusedJson = new JsonObject();
+								try{
+									//load the file
+									InputStream fin = ResourceLoader.getFileStream(focusedFile);
+									//setup the decoder
+									PNGDecoder decoder = new PNGDecoder(fin);
+									
+									//setup the image sizes
+									focusedWidth = decoder.getWidth();
+									focusedHeight = decoder.getHeight();
+									
+									System.out.println("size:"+focusedWidth+","+focusedHeight);
+									
+									//close out the file
+									fin.close();
+								}catch(IOException e){
+									e.printStackTrace();
+								}
+							}
+						}else{
+							System.out.println(lineArgs[1] +" does not exist");
+						}
+						break;
+					case "scan":
+						if(lineArgs.length == 2)
+							outputFile(lineArgs[1]);
+						else if(lineArgs.length == 3)
+							outputFile(lineArgs[1], getInt(lineArgs[2]));
+						break;
+					}
+				}else{
+					switch(lineArgs[0].toLowerCase()){
+						case "ret":
+							focusing = false;
+							focusedJson = null;
+							focusedFile = null;
+							focusedWidth = 0;
+							focusedHeight = 0;
+							break;
+						case "div":
+							if(lineArgs.length == 2){
+								System.out.println(focusedWidth / getInt(lineArgs[1]));
+							}else if(lineArgs.length == 3){
+								System.out.println(""+focusedWidth / getInt(lineArgs[1] +
+										" x "+focusedHeight / getInt(lineArgs[2])));
+							}
+							break;
+						case "arr":
+							if(lineArgs.length == 2){
+								focusedArrayStr = lineArgs[1];
+								focusedArray = new JsonArray();
+							}
+							break;
+						case "add":
+							if(lineArgs.length == 3){
+								JsonObject obj = new JsonObject();
+								obj.addProperty(lineArgs[1], lineArgs[2]);
+								focusedArray.add(obj);
+							}else if(lineArgs.length == 2){
+								focusedJson.add(lineArgs[1], focusedArray);
+							}else if(lineArgs.length == 4){
+								String name = lineArgs[1];
+								
+								int start = getInt(lineArgs[2]);
+								int end = getInt(lineArgs[3]);
+								
+								JsonObject obj = new JsonObject();
+								
+								StringBuilder frames = new StringBuilder();
+								for(int i=start;i<end;i++){
+									frames.append(i+",");
+								}
+								obj.addProperty("name", name);
+								obj.addProperty("frames", frames.toString());
+								
+								focusedArray.add(obj);
+							}
+							break;
+						case "out":
+							if(lineArgs.length == 2){
+								switch(lineArgs[1].toLowerCase()){
+								case "arr":
+									System.out.println(gson.toJson(focusedArray));
+									break;
+								}
+							}else{
+								System.out.println(gson.toJson(focusedJson));
+							}
+							break;
+						case "save":
+							if(lineArgs.length == 2){
+								ResourceLoader.writeString(lineArgs[1], gson.toJson(focusedJson));
+							}
+							break;
+					}
+				}
+			}
+		}
+		
+	}
+	
+	public static void outputFile(String path, int maxlength){
+		String str = ResourceLoader.getString(path);
+		
+		if(str.length() > maxlength)
+			str = str.substring(0, maxlength);
+		
+		System.out.println(str);
+	}
+	
+	public static void outputFile(String path){
+		System.out.println(ResourceLoader.getString(path));
+	}
+	
+	public static int getInt(String string){
+		try{
+			return Integer.parseInt(string);
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+		}
+		return -1;
+	}

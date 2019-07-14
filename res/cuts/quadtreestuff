@@ -1,0 +1,108 @@
+	
+	/**
+	 * 
+	 * @param transform transform to add
+	 */
+	public void add(Transform transform){
+		int width = Math.round(transform.getWidth() / NodeSpace.size);
+		int height = Math.round(transform.getHeight() / NodeSpace.size);
+		
+		int x = Math.round(transform.getX());
+		int y = Math.round(transform.getY());
+
+		for(int xtemp=x;xtemp<x+width;xtemp++){
+			for(int ytemp=y;ytemp<y+height;ytemp++){
+				addToNode(xtemp, ytemp, transform);
+			}
+		}
+	}
+	
+	public void remove(Transform transform){
+		int width = Math.round(transform.getWidth() / NodeSpace.size);
+		int height = Math.round(transform.getHeight() / NodeSpace.size);
+		
+		int x = Math.round(transform.getX());
+		int y = Math.round(transform.getY());
+		
+		for(int xtemp=x;xtemp<x+width;xtemp++){
+			for(int ytemp=y;ytemp<y+height;ytemp++){
+				removeFromNode(xtemp, ytemp, transform);
+			}
+		}
+	}
+	
+	public void removeFromNode(int x, int y, Transform transform){
+		nodes[x + width * y].remove(transform);
+	}
+	
+	public void addToNode(int x, int y, Transform transform){
+		nodes[x + width * y].add(transform);
+	}
+	
+	public static class NodeSpace{
+		public static final float size = 16f;
+		private static final float halfSize = size / 2f;
+		
+		private ArrayList<Transform> objects;
+		private int x, y;
+		
+		public NodeSpace(int x, int y, Transform...transforms){
+			this.x = x;
+			this.y = y;
+			objects = new ArrayList<>();
+			//add all to objects
+			for(Transform t : transforms)
+				objects.add(t);
+		}
+		
+		/**
+		 * No deltas needed, just checks
+		 */
+		public void update(){
+			for(Transform object : objects)
+				update(object);
+		}
+		
+		public void remove(Transform transform){
+			if(objects.contains(transform))
+				objects.remove(transform);
+		}
+		
+		//Probably want to remove
+		public void add(Transform transform){
+			objects.add(transform);
+		}
+		
+		public void update(Transform transform){
+			//if the object is within range
+			if(containsWithin(transform))
+				//and not in the array
+				if(!containsChild(transform))
+					//add to the array
+					objects.add(transform);
+			else //otherwise, if its outside of the range
+				if(containsChild(transform)) //and its in the array
+					objects.remove(transform); //take it out of the array
+		}
+		
+		public boolean containsChild(Transform transform){
+			return objects.contains(transform);
+		}
+		
+		public boolean containsWithin(Transform transform){
+			float cX = (this.x * size) + halfSize;
+			float cY = (this.y * size) + halfSize;
+			
+			return Math.abs(cX - transform.getX()) < halfSize + (transform.getWidth() / 2f) &&
+					Math.abs(cY - transform.getY()) < halfSize + (transform.getHeight() / 2f);
+		}
+		
+		public boolean contains(Vector2f point){
+			return point.x > (x * size) && point.x < (x + 1) * size &&
+					point.y > (y * size) && point.y < (y + 1) * size;
+		}
+		
+		public void clear(){
+			objects.clear();
+		}
+	}

@@ -1,0 +1,253 @@
+package io.tek256.core.collision;
+
+import java.util.ArrayList;
+
+import org.joml.Vector2f;
+
+import io.tek256.core.runtime.Transform;
+
+public class CollisionWorld {
+	public static float GRAVITY = -9.8f;
+	
+	public ArrayList<AABB> collidables;
+	public TileSpace[] cells;
+	private int cellWidth, cellHeight;
+	
+	public CollisionWorld(int cellWidth, int cellHeight){
+		collidables = new ArrayList<>();
+		
+		this.cellWidth = cellWidth;
+		this.cellHeight = cellHeight;
+		
+		cells = new TileSpace[cellWidth * cellHeight];
+		for(int i=0;i<cells.length;i++)
+			cells[i] = new TileSpace(i % cellWidth, i / cellHeight);
+	}
+	
+	public void add(Transform transform){
+		for(AABB aabb : collidables){
+			if(aabb.transform == transform)
+				return;
+		}
+		
+		AABB aabb = new AABB(transform);
+		collidables.add(aabb);
+		updateTiles(aabb);
+	}
+	
+	public void step(long delta){
+		collidables.forEach((aabb)->{
+			aabb.transform.updatePosition(delta);
+			updateTiles(aabb);
+		});
+		
+		for(int i=0;i<cells.length;i++)
+			cells[i].update();
+	}
+	
+	public void updateTiles(AABB aabb){
+		cells[0].add(aabb);
+	}
+	
+	public int getCellWidth(){
+		return cellWidth;
+	}
+	
+	public int getCellHeight(){
+		return cellHeight;
+	}
+	
+	public static class TileSpace {
+		public static float size = 64;
+		
+		private float l,r,b,t;
+		private int x,y;
+		private ArrayList<AABB> objects;
+		
+		private Vector2f position;
+		
+		public TileSpace(int x, int y){
+			this.x = x;
+			this.y = y;
+			
+			l = x * size - (size / 2f);
+			r = x * size + (size / 2f);
+			b = y * size - (size / 2f);
+			t = y * size + (size / 2f);
+			
+			objects = new ArrayList<AABB>();
+			
+			position = new Vector2f(x * size, y * size);
+		}
+		
+		public void update(){
+			ArrayList<AABB> toRemove = new ArrayList<>();
+			objects.forEach((aabb)->{
+				clampBounds(aabb);
+				if(!containedWithin(aabb)){
+					toRemove.add(aabb);
+				}else{
+					objects.forEach((o)->{
+						if(o != aabb){
+							System.out.println("test");
+							if(aabb.intersects(o)){
+								System.out.println("ay");
+								solve(aabb, o);
+							}
+						}
+					});
+				}
+			});
+			
+			objects.removeAll(toRemove);
+		}
+		
+		public void clampBounds(AABB aabb){
+			float minx = aabb.getLeft();
+			float miny = aabb.getBottom();
+			
+			float offsetx = 0;
+			float offsety = 0;
+			
+			if(minx < 0){
+				offsetx = -minx;
+			}
+			
+			if(miny < 0){
+				offsety = -miny;
+			}
+			
+			if(offsetx != 0 || offsety != 0)
+				aabb.move(offsetx, offsety);
+		}
+		
+		public void solve(AABB a1, AABB a2){
+			float overlapx = getOverlapX(a1, a2);
+			float overlapy = getOverlapY(a1, a2);
+			
+			if(overlapx > overlapy){
+				a1.transform.move(0, -overlapy);
+			}else if(overlapx <= overlapy){
+				a1.transform.move(-overlapx, 0);
+			}
+		}
+		
+		public float getOverlapX(AABB a, AABB b){
+			return Math.abs(a.transform.getX() - b.transform.getX()) - ((a.transform.getWidth() / 2f) + (b.transform.getWidth() / 2f));
+		}
+		
+		public float getOverlapY(AABB a, AABB b){
+			return Math.abs(a.transform.getY() - b.transform.getY()) - ((a.transform.getHeight() / 2f) + (b.transform.getHeight() / 2f));
+		}
+		
+		public boolean containedWithin(Vector2f point){
+			return point.x > left() && point.x < right()
+					&& point.y > bottom() && point.y < top();
+		}
+		
+		public boolean containedWithin(AABB aabb){
+			return Math.abs(position.x - aabb.transform.getX()) < (size / 2f) + (aabb.transform.getWidth() / 2f)
+					&& Math.abs(position.y - aabb.transform.getY()) < (size / 2f) + (aabb.transform.getHeight() / 2f);
+		}
+		
+		public float left(){
+			return l;
+		}
+		
+		public float right(){
+			return r;
+		}
+		
+		public float bottom(){
+			return b;
+		}
+		
+		public float top(){
+			return t;
+		}
+		
+		public void add(AABB aabb){
+			if(!objects.contains(aabb))
+				objects.add(aabb);
+		}
+		
+		public void remove(AABB aabb){
+			if(objects.contains(aabb))
+				objects.remove(aabb);
+		}
+		
+		public int getX(){
+			return x;
+		}
+		
+		public int getY(){
+			return y;
+		}
+		
+		public float getLeft(){
+			return position.x - (size / 2f);
+		}
+		
+		public float getRight(){
+			return position.x + (size / 2f);
+		}
+		
+		public float getTop(){
+			return position.y + (size / 2f);
+		}
+		
+		public float getBottom(){
+			return position.y - (size / 2f);
+		}
+	}
+	
+	public static class AABB{
+		public Transform transform;
+		
+		public AABB(Transform transform){
+			this.transform = transform;
+		}
+		
+		public boolean contains(Vector2f point){
+			return point.x > transform.getLeft() && point.x < transform.getRight() 
+					&& point.y > transform.getBottom() && point.y < transform.getTop();
+		}
+		public boolean intersects(AABB o){
+			if(Math.abs(transform.getX() - o.transform.getX()) > ((transform.getWidth() / 2f) + (o.transform.getWidth() / 2f)))
+				return false;
+			if(Math.abs(transform.getY() - o.transform.getY()) > ((transform.getHeight() / 2f) + (o.transform.getHeight() / 2f)))
+				return false;
+			return true;
+		}
+		
+		public void move(float x, float y){
+			transform.move(x, y);
+		}
+		
+		public float getX(){
+			return transform.getX();
+		}
+		
+		public float getY(){
+			return transform.getY();
+		}
+		
+		public float getLeft(){
+			return transform.getX() - (transform.getWidth() / 2f);
+		}
+		
+		public float getRight(){
+			return transform.getX() + (transform.getWidth() / 2f);
+		}
+		
+		public float getTop(){
+			return transform.getY() + (transform.getHeight() / 2f);
+		}
+		
+		public float getBottom(){
+			return transform.getY() - (transform.getHeight() / 2f);
+		}
+	}
+	
+}
+

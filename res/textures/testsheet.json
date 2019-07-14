@@ -1,0 +1,16 @@
+{
+  "name": "basic",
+  "type": "spritesheet",
+  "path": "res\\textures\\basicanimation.png",
+  "width": 8,
+  "height": 8,
+  "mappings": [],
+  "animations": [
+    {
+      "name": "basic",
+      "frameLength": 100.0,
+      "frames": "0,1,2,3,4,5",
+      "textureSheet": "basic"
+    }
+  ]
+}

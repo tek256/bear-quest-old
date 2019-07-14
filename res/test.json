@@ -1,0 +1,8 @@
+{
+  "mappings": [
+    {
+      "name": "testAnim",
+      "frames": "0,1,2,3,"
+    }
+  ]
+}

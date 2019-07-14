@@ -1,0 +1,43 @@
+Notes: Logs aren't generally well documented or wordy. There will be the
+occasional entry that is wordy, but keep in mind these are supposed to be
+tl;dr's for large commits & changes. Usually containing references to other
+documents to find information.
+
+LATEST: (Descending = Past/Older)
+
+15 September 2016 8:25 PM
+Cleaned up most of the code, running thru some ideas of 
+shortening packages. 
+
+Also working on the new editor class. Editor Space is sort of
+messy and inherently not legible/maintainable. Working on 
+creating future proof classes.
+
+
+11 September 2016 6:30 AM
+Live streaming 
+To do:
+	CODE: 
+		Collision (see 10 September) 
+		Level Saving/Loading
+		AI
+
+10 September 2016 12:40 AM
+Setting up things for live stream (http://www.twitch.tv/tek256)
+
+To do:
+	CODE: 
+		Collision
+			Detection
+			Raycasting
+		GUI
+		Level Saving/Loading (Last steps) (5/6 Finishing 11 September)
+		AI
+	ART: 
+		Title Screen (Art) (DONE September 10)
+
+1 September 2016  4 AM
+Finished commenting out already existing files.
+Cleaned up a few small bits of code. 
+Working out standards for future implementations.
+	Note: Shaders are going to be a big part of it. 
