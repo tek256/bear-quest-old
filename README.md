@@ -1,7 +1,8 @@
 <p align="center">
   <h3 align="center">Bear Quest</h3>
-  <p align="center"> by <a href="http://www.tek256.com">tek256</a></p>
+  <p align="center"> by <a href="https://tek256.com">tek256</a></p>
   <p align="center"><a href="http://tek.itch.io/bear-quest">download</a></p>
+  <img align="center" src="res/textures/screenshot.png">
 </p>
 
 <h4>about</h4>
